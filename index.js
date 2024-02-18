@@ -1,6 +1,7 @@
 import { argv } from "zx";
 import "zx/globals";
 import { JSDOM } from "jsdom";
+import fs from "fs";
 
 async function main() {
   if (argv.path != null) {
@@ -23,6 +24,11 @@ async function main() {
       if (matched != null) {
         const data = JSON.parse(matched[1]);
         console.log(data);
+        // 将数据写入文件 simple.{timestamp}.json，使用 nodejs file system 模块
+        const timestamp = new Date().getTime();
+        const output = `simple.${timestamp}.json`;
+        fs.writeFileSync(output, JSON.stringify(data, null, 2));
+        console.log(`Output to ${output}`);
       }
     }
   } else {
