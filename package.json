@@ -1,0 +1,21 @@
+{
+  "name": "dep-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@dep-tree/cli": "^0.19.5",
+    "dependency-cruiser": "^16.2.0",
+    "jsdom": "^24.0.0",
+    "madge": "^6.1.0",
+    "prettier": "^3.2.5",
+    "zx": "^7.2.3"
+  }
+}
