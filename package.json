@@ -5,17 +5,20 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:server": "lerna run start --scope dep-tracker-api"
   },
   "type": "module",
   "author": "",
   "license": "ISC",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
-    "@dep-tree/cli": "^0.19.5",
-    "dependency-cruiser": "^16.2.0",
-    "jsdom": "^24.0.0",
-    "madge": "^6.1.0",
-    "prettier": "^3.2.5",
-    "zx": "^7.2.3"
+    "prettier": "^3.2.5"
+  },
+  "devDependencies": {
+    "lerna": "^8.1.2"
   }
 }
