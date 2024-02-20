@@ -16,6 +16,14 @@ import { v4 as uuidv4 } from "uuid";
  */
 
 /**
+ * @typedef {object} DepLink
+ * @property {number} from - 起始节点 id
+ * @property {number} to - 终止节点 id
+ * @property {boolean} isDir - 是否是目录
+ * @property {boolean} isCyclic - 是否是循环依赖
+ */
+
+/**
  * 解析 dep-tree entropy 输出的 html 文件
  * @param {string} entry - 入口文件相对路径
  * @returns {string | undefined} - 返回解析后的数据文件的 id
@@ -130,4 +138,30 @@ export function getLargestChunks(id, max = 10) {
     .slice(0, max);
 
   return largest;
+}
+
+/**
+ * 获取某个 chunk 的依赖方，即 to 是这个 chunk 的 chunks {NodeDep[]}
+ * @param {string} id
+ * @param {number} chunkId
+ * @returns {DepNode[]}
+ */
+export function getDepChunks(id, chunkId) {
+  const data = fs.readFileSync(`database/${id}.json`, "utf-8");
+
+  /**
+   * @type {{ nodes: DepNode[], links: DepLink[] }}
+   */
+  const parsed = JSON.parse(data);
+
+  const deps = parsed.links
+    .filter((link) => link.to === chunkId && !link.isDir)
+    .map(
+      (link) =>
+        /** @type{DepNode} */ (
+          parsed.nodes.find((node) => node.id === link.from)
+        ),
+    );
+
+  return deps;
 }

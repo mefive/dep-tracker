@@ -1,6 +1,6 @@
 const colors = {
   /** 基础色 **/
-  primary: "#FF8E22", // 主色
+  primary: "#1677ff", // 主色
   "primary-light": "#FFD2A7", // 辅助色
   "primary-lighter": "#FFF5EE", // 辅助色
 

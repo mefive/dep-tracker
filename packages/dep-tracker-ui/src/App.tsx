@@ -5,10 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
 import { DepNode } from "./types";
 import _ from "lodash";
+import { DepChunksViewer } from "./DepChunksViewer";
 
 function App() {
   const [id, setId] = useState<string | null>(null);
   const [chunks, setChunks] = useState<DepNode[]>([]);
+  const [viewChunk, setViewChunk] = useState<DepNode | null>(null);
 
   const isParsingRef = useRef(false);
   const parsingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -130,9 +132,32 @@ function App() {
                 }
               },
             },
+            {
+              title: "操作",
+              align: "center",
+              key: "action",
+              render: (_, record) => (
+                <div className="flex justify-center space-x-1">
+                  <div
+                    className="text-primary cursor-pointer"
+                    onClick={() => {
+                      setViewChunk(record);
+                    }}
+                  >
+                    依赖方
+                  </div>
+                </div>
+              ),
+            },
           ]}
         />
       </div>
+
+      <DepChunksViewer
+        id={id!}
+        chunk={viewChunk}
+        onClose={() => setViewChunk(null)}
+      />
     </>
   );
 }

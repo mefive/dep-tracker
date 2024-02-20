@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "start:server": "lerna run start --scope dep-tracker-api"
+    "start:server": "lerna run start --scope dep-tracker-api",
+    "build:ui": "lerna run build --scope dep-tracker-ui"
   },
   "type": "module",
   "author": "",
