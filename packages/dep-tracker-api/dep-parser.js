@@ -1,8 +1,7 @@
-import { argv } from "zx";
-import "zx/globals";
-import { JSDOM } from "jsdom";
 import fs from "fs";
+import { JSDOM } from "jsdom";
 import { v4 as uuidv4 } from "uuid";
+import "zx/globals";
 
 /**
  * @typedef {object} DepNode
