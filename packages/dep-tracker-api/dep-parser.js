@@ -29,6 +29,16 @@ import "zx/globals";
  */
 export function parse(entry) {
   if (entry != null) {
+    // 检查入口文件是否是 js jsx ts tsx 文件
+    if (!/\.(j|t)sx?$/.test(entry)) {
+      throw new Error("入口文件不是 js jsx ts tsx 文件");
+    }
+
+    // 检查入口文件是否存在
+    if (!fs.existsSync(entry) || !fs.statSync(entry).isFile()) {
+      throw new Error("入口不存在或不是文件");
+    }
+
     const id = uuidv4().replace(/-/g, "");
 
     parseAsync(entry, id);
