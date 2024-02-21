@@ -2,7 +2,8 @@
 
 依赖分析工具，用于分析某个入口的所有依赖，以及每个依赖是怎么来的（寻找其依赖方）
 
-<img width="1035" alt="image" src="https://github.com/mefive/dep-tracker/assets/6426420/83998e6c-55a2-48ff-afcd-1e817c606652">
+<img width="1072" alt="image" src="https://github.com/mefive/dep-tracker/assets/6426420/6ecbfcc6-6847-491e-a11f-cfc4fc762918">
+
 <img width="1086" alt="image" src="https://github.com/mefive/dep-tracker/assets/6426420/d8681ca9-6122-4cd1-a07a-0f2f00706612">
 
 
