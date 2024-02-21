@@ -2,6 +2,7 @@ import fs from "fs";
 import { JSDOM } from "jsdom";
 import { v4 as uuidv4 } from "uuid";
 import "zx/globals";
+import _ from "lodash";
 
 /**
  * @typedef {object} DepNode
@@ -12,6 +13,7 @@ import "zx/globals";
  * @property {number} loc - 行数
  * @property {number} size - 文件大小 一个比例值，如 0 1 2 3
  * @property {boolean} isDir - 是否是目录
+ * @property {number} depth - 深度
  */
 
 /**
@@ -57,7 +59,7 @@ export function parse(entry) {
  */
 async function parseAsync(entry, id) {
   const { stdout: outputPath } =
-    await $`dep-tree entropy ${entry} --no-browser-open`;
+    await $`npx dep-tree entropy ${entry} --no-browser-open`;
 
   // 使用 jsdom 解析 html
   const dom = await JSDOM.fromFile(outputPath.replace("\n", ""));
@@ -71,9 +73,9 @@ async function parseAsync(entry, id) {
 
     if (matched != null) {
       /**
-       * @type {{ nodes: DepNode[] }}
+       * @type {{ nodes: DepNode[], links: DepLink[] }}
        */
-      const data = JSON.parse(matched[1]);
+      const rawData = JSON.parse(matched[1]);
 
       // 如果没有 database 文件夹，创建一个
       if (!fs.existsSync("database")) {
@@ -82,15 +84,33 @@ async function parseAsync(entry, id) {
 
       const output = `database/${id}.json`;
 
+      const rootDir = findRootDir(entry);
+
       // 修正文件的 size，使用 file system 获取文件大小
-      for (const node of data.nodes) {
+      for (const node of rawData.nodes) {
         if (!node.isDir) {
-          const rootDir = findRootDir(entry);
-          const path = `${rootDir}/${node.dirName}/${node.fileName}`;
+          const path = `${rootDir}/${node.dirName}${node.fileName}`;
 
           const stats = fs.statSync(path);
           node.size = stats.size;
         }
+      }
+
+      /**
+       * @type {{ nodes: Record<string, DepNode>, links: DepLink[] }}
+       */
+      const data = {
+        nodes: _.mapKeys(rawData.nodes, (node) => node.id),
+        links: rawData.links,
+      };
+
+      // 找到 root node
+      const rootNode = rawData.nodes.find(
+        (node) => entry === `${rootDir}/${node.dirName}${node.fileName}`,
+      );
+
+      if (rootNode != null) {
+        addDepth(rootNode.id, 0, data.nodes, data.links);
       }
 
       // 将数据写入文件 {id}.json，使用 nodejs file system 模块
@@ -101,6 +121,30 @@ async function parseAsync(entry, id) {
       return id;
     }
   }
+}
+
+/**
+ * 为 node 添加 depth 字段
+ * @param {number} nodeId
+ * @param {number} depth
+ * @param {Record<string, DepNode>} nodes
+ * @param {DepLink[]} links
+ * @returns void
+ */
+export function addDepth(nodeId, depth, nodes, links) {
+  const node = nodes[nodeId];
+
+  if (node.depth != null) {
+    return;
+  }
+
+  node.depth = depth;
+
+  const deps = links.filter((link) => link.from === nodeId && !link.isDir);
+
+  deps.forEach((dep) => {
+    addDepth(dep.to, depth + 1, nodes, links);
+  });
 }
 
 /**
@@ -136,12 +180,13 @@ export function getLargestChunks(id, max = 10) {
   const data = fs.readFileSync(`database/${id}.json`, "utf-8");
 
   /**
-   * @type {{ nodes: DepNode[] }}
+   * @type {{ nodes: Record<string, DepNode>, links: DepLink[] }}
    */
   const parsed = JSON.parse(data);
 
   // 获取 loc 最大的前 max 个节点
-  const largest = parsed.nodes
+  const largest = Object.entries(parsed.nodes)
+    .map(([__, node]) => node)
     .filter((node) => !node.isDir)
     .sort((a, b) => b.size - a.size)
     .slice(0, max);
@@ -159,18 +204,13 @@ export function getDepChunks(id, chunkId) {
   const data = fs.readFileSync(`database/${id}.json`, "utf-8");
 
   /**
-   * @type {{ nodes: DepNode[], links: DepLink[] }}
+   * @type {{ nodes: Record<string, DepNode>, links: DepLink[] }}
    */
   const parsed = JSON.parse(data);
 
   const deps = parsed.links
     .filter((link) => link.to === chunkId && !link.isDir)
-    .map(
-      (link) =>
-        /** @type{DepNode} */ (
-          parsed.nodes.find((node) => node.id === link.from)
-        ),
-    );
+    .map((link) => parsed.nodes[link.from]);
 
   return deps;
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "lerna run start --scope dep-tracker-api",
-    "build": "lerna run build --scope dep-tracker-ui"
+    "build": "lerna run build --scope dep-tracker-ui",
+    "clean": "del -f ./packages/dep-tracker-api/database/*.json"
   },
   "type": "module",
   "author": "",
@@ -16,6 +17,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "del-cli": "^5.1.0",
     "prettier": "^3.2.5"
   },
   "devDependencies": {

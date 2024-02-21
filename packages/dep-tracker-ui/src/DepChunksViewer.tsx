@@ -53,7 +53,7 @@ export const DepChunksViewer: React.FC<{
           >
             <Tag className="!mr-0">
               {node.dirName}
-              {node.fileName}
+              {node.fileName}[{node.depth}]
             </Tag>
           </Breadcrumb.Item>
         ))}
@@ -73,6 +73,11 @@ export const DepChunksViewer: React.FC<{
             title: "目录名",
             dataIndex: "dirName",
             key: "dirName",
+          },
+          {
+            title: "深度",
+            dataIndex: "depth",
+            align: "right",
           },
           {
             title: "行数",

@@ -113,6 +113,11 @@ function App() {
               key: "dirName",
             },
             {
+              title: "深度",
+              dataIndex: "depth",
+              align: "right",
+            },
+            {
               title: "行数",
               dataIndex: "loc",
               key: "loc",

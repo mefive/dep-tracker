@@ -13,4 +13,6 @@ export interface DepNode {
   size: number;
   /** 是否是目录 */
   isDir: boolean;
+  /** 深度 */
+  depth: number;
 }
