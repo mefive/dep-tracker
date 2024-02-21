@@ -86,18 +86,21 @@ export const DepChunksViewer: React.FC<{
             title: "深度",
             dataIndex: "depth",
             align: "right",
+            width: 80,
           },
           {
             title: "行数",
             dataIndex: "loc",
             key: "loc",
             align: "right",
+            width: 100,
           },
           {
             title: "文件大小",
             dataIndex: "size",
             key: "size",
             align: "right",
+            width: 100,
             render: (size) => {
               // size 为字节，按需求转换为 KB 或 MB
               if (size > 1024 * 1024) {
@@ -111,6 +114,7 @@ export const DepChunksViewer: React.FC<{
             title: "操作",
             align: "center",
             key: "action",
+            width: 100,
             render: (_, record) => (
               <div className="flex justify-center space-x-1">
                 <div

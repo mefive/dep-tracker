@@ -89,7 +89,15 @@ async function parseAsync(entry, id) {
       // 修正文件的 size，使用 file system 获取文件大小
       for (const node of rawData.nodes) {
         if (!node.isDir) {
-          const path = `${rootDir}/${node.dirName}${node.fileName}`;
+          let path = `${rootDir}/${node.dirName}${node.fileName}`;
+
+          if (!fs.existsSync(path)) {
+            path = `${path}x`;
+            if (!fs.existsSync(path)) {
+              console.log(`File not found: ${path}`);
+              continue;
+            }
+          }
 
           const stats = fs.statSync(path);
           node.size = stats.size;
