@@ -42,16 +42,24 @@ export const DepChunksViewer: React.FC<{
       onCancel={onClose}
       width="calc(100vw - 32px)"
     >
-      <Breadcrumb className="leading-8">
+      <Breadcrumb className="leading-8" separator="<-">
         {breadcrumbs.map((node, index) => (
           <Breadcrumb.Item
+            className="cursor-pointer"
             key={node.id}
             onClick={() => {
               setBreadcrumbs(breadcrumbs.slice(0, index + 1));
               run(node, false);
             }}
           >
-            <Tag className="!mr-0">
+            <Tag
+              className="!mr-0"
+              color={
+                breadcrumbs.some((n, i) => n.id === node.id && i !== index)
+                  ? "error"
+                  : undefined
+              }
+            >
               {node.dirName}
               {node.fileName}[{node.depth}]
             </Tag>
