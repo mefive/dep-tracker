@@ -15,4 +15,6 @@ export interface DepNode {
   isDir: boolean;
   /** 深度 */
   depth: number;
+  /** 依赖数 */
+  dependencyCount: number;
 }

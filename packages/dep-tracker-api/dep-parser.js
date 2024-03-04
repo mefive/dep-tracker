@@ -14,6 +14,7 @@ import _ from "lodash";
  * @property {number} size - 文件大小 一个比例值，如 0 1 2 3
  * @property {boolean} isDir - 是否是目录
  * @property {number} depth - 深度
+ * @property {number} dependencyCount - 依赖数
  */
 
 /**
@@ -119,6 +120,7 @@ async function parseAsync(entry, id) {
 
       if (rootNode != null) {
         addDepth(rootNode.id, 0, data.nodes, data.links);
+        addDependencyCount(rootNode.id, data.nodes, data.links);
       }
 
       // 将数据写入文件 {id}.json，使用 nodejs file system 模块
@@ -154,6 +156,79 @@ export function addDepth(nodeId, depth, nodes, links) {
     addDepth(dep.to, depth + 1, nodes, links);
   });
 }
+
+/**
+ * 为 node 添加 dependencyCount 字段
+ * @param {number} nodeId
+ * @param {Record<string, DepNode>} nodes
+ * @param {DepLink[]} links
+ * @param {number[]} paths
+ */
+function addDependencyCount(nodeId, nodes, links, paths = [nodeId]) {
+  const node = nodes[nodeId];
+
+  if (node.dependencyCount != null) {
+    return;
+  }
+
+  const deps = links.filter((link) => link.from === nodeId && !link.isDir);
+
+  node.dependencyCount = deps.length;
+
+  deps.forEach((dep) => {
+    if (!paths.includes(dep.to)) {
+      paths.push(dep.to);
+      const count = addDependencyCount(dep.to, nodes, links, paths);
+
+      if (count != null && count > 0) {
+        node.dependencyCount += count;
+      }
+
+      paths.pop();
+    }
+  });
+
+  return node.dependencyCount;
+}
+
+// /**
+//  * 构建节点树
+//  * @param {DepNode} root 当前根节点
+//  * @param {Record<string, DepNode>} nodes 所有节点
+//  * @param {DepLink[]} links
+//  */
+// export function buildTree(root, nodes, links, paths = []) {
+//   // 获取当前节点的所有子节点 links
+//   const childrenLinks = links.filter(
+//     (link) => link.from === root.id && !link.isDir,
+//   );
+
+//   root.children = [];
+
+//   for (const link of childrenLinks) {
+//     const child = { ...nodes[link.to] };
+
+//     if (child == null) {
+//       continue;
+//     }
+
+//     if (paths.includes(child.id)) {
+//       continue;
+//     }
+
+//     paths.push(child.id);
+
+//     console.log("start build tree, paths: ", JSON.stringify(paths));
+
+//     buildTree(child, nodes, links, paths);
+
+//     paths.pop();
+
+//     console.log("finish build tree, paths: ", JSON.stringify(paths));
+
+//     root.children.push(child);
+//   }
+// }
 
 /**
  * 函数用于递归查找包含 package.json 的目录
@@ -203,10 +278,31 @@ export function getLargestChunks(id, max = 10) {
 }
 
 /**
- * 获取某个 chunk 的依赖方，即 to 是这个 chunk 的 chunks {NodeDep[]}
+ * 获取某个 chunk 的引用方，即 to 是这个 chunk 的 chunks {NodeDep[]}
  * @param {string} id
  * @param {number} chunkId
  * @returns {DepNode[]}
+ */
+export function getRefChunks(id, chunkId) {
+  const data = fs.readFileSync(`database/${id}.json`, "utf-8");
+
+  /**
+   * @type {{ nodes: Record<string, DepNode>, links: DepLink[] }}
+   */
+  const parsed = JSON.parse(data);
+
+  const refs = parsed.links
+    .filter((link) => link.to === chunkId && !link.isDir)
+    .map((link) => parsed.nodes[link.from]);
+
+  return refs;
+}
+
+/**
+ * 获取某个 chunk 的依赖方，即 from 是这个 chunk 的 chunks {NodeDep[]}
+ * @param {string} id
+ * @param {number | undefined} chunkId
+ * @returns {{ root: DepNode | null, deps: DepNode[] }}
  */
 export function getDepChunks(id, chunkId) {
   const data = fs.readFileSync(`database/${id}.json`, "utf-8");
@@ -216,9 +312,47 @@ export function getDepChunks(id, chunkId) {
    */
   const parsed = JSON.parse(data);
 
-  const deps = parsed.links
-    .filter((link) => link.to === chunkId && !link.isDir)
-    .map((link) => parsed.nodes[link.from]);
+  // 如果没有 chunkId，则返回根节点的树，根节点是 depth 为 0 的节点
+  if (chunkId == null) {
+    chunkId = Object.values(parsed.nodes).find((node) => node.depth === 0)?.id;
+  }
 
-  return deps;
+  const deps = parsed.links
+    .filter((link) => link.from === chunkId && !link.isDir)
+    .map((link) => parsed.nodes[link.to]);
+
+  return {
+    root: chunkId == null ? null : parsed.nodes[chunkId],
+    deps,
+  };
 }
+
+// /**
+//  * 获取某个 chunk 的依赖树
+//  * @param {string} id
+//  * @param {number | undefined} chunkId
+//  * @returns {DepNode | null}
+//  */
+// export function getDepChunksTree(id, chunkId) {
+//   const data = fs.readFileSync(`database/${id}.json`, "utf-8");
+
+//   /**
+//    * @type {{ nodes: Record<string, DepNode>, links: DepLink[] }}
+//    */
+//   const parsed = JSON.parse(data);
+
+//   if (chunkId == null) {
+//     // 如果没有 chunkId，则返回根节点的树，根节点是 depth 为 0 的节点
+//     chunkId = Object.values(parsed.nodes).find((node) => node.depth === 0)?.id;
+//   }
+
+//   if (chunkId == null) {
+//     return null;
+//   }
+
+//   const root = parsed.nodes[chunkId];
+
+//   buildTree(root, parsed.nodes, parsed.links, [chunkId]);
+
+//   return root;
+// }

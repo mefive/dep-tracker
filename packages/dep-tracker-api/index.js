@@ -5,7 +5,13 @@
  */
 
 import express from "express";
-import { getDepChunks, getLargestChunks, parse } from "./dep-parser.js";
+import {
+  getRefChunks,
+  // getDepChunksTree,
+  getLargestChunks,
+  parse,
+  getDepChunks,
+} from "./dep-parser.js";
 import cors from "cors";
 
 // 从 ENV 变量中获取端口号，如果没有则使用 3000
@@ -46,13 +52,42 @@ app.get("/api/chunks/:id", (req, res) => {
 });
 
 /**
- * 获取某个 chunk 的依赖方
+ * 获取某个 chunk 的引用方
  */
-app.get("/api/dep-chunks/:id/:chunkId", (req, res) => {
+app.get("/api/ref-chunks/:id/:chunkId", (req, res) => {
   const { id, chunkId } = req.params;
-  const chunks = getDepChunks(id, Number(chunkId));
+  const chunks = getRefChunks(id, Number(chunkId));
   res.json({ chunks });
 });
+
+/**
+ * 获取某个 chunk 的依赖方
+ * @param {string} id
+ * @param {number} chunkId
+ * @returns {{ root: DepNode, deps: DepNode[] }}
+ */
+app.get("/api/dep-chunks/:id", (req, res) => {
+  const { id } = req.params;
+  const chunkId = req.query.chunkId;
+  const result = getDepChunks(
+    id,
+    chunkId == null ? undefined : Number(chunkId),
+  );
+  res.json({ ...result });
+});
+
+// /**
+//  * 获取某个 chunk 的依赖树
+//  */
+// app.get("/api/dep-tree/:id", (req, res) => {
+//   const { id } = req.params;
+//   const chunkId = req.query.chunkId;
+//   const tree = getDepChunksTree(
+//     id,
+//     chunkId == null ? undefined : Number(chunkId),
+//   );
+//   res.json({ tree });
+// });
 
 // 全局捕获异常，返回 500，以及错误信息 message
 app.use((err, _req, res, _next) => {

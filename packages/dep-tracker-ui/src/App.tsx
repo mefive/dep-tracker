@@ -3,14 +3,16 @@ import { AxiosError } from "axios";
 import _ from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
-import { DepChunksViewer } from "./DepChunksViewer";
 import * as api from "./api";
 import { DepNode } from "./types";
+import { RefChunksViewer } from "./RefChunksViewer";
+import { DepTreeViewer } from "./DepTreeViewer";
 
 function App() {
   const [id, setId] = useState<string | null>(null);
   const [chunks, setChunks] = useState<DepNode[]>([]);
   const [viewChunk, setViewChunk] = useState<DepNode | null>(null);
+  const [showDepTree, setShowDepTree] = useState(false);
 
   const isParsingRef = useRef(false);
   const parsingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,7 +95,17 @@ function App() {
 
       <div className="mt-1">
         {!_.isEmpty(chunks) && !isParsingRef.current && (
-          <div className="mb-1">总计: {chunks.length} 个</div>
+          <div className="mb-1 flex justify-between">
+            <div>总计: {chunks.length} 个</div>
+            <Button
+              type="primary"
+              onClick={() => {
+                setShowDepTree(true);
+              }}
+            >
+              查看依赖树
+            </Button>
+          </div>
         )}
 
         <Table
@@ -117,6 +129,13 @@ function App() {
             {
               title: "深度",
               dataIndex: "depth",
+              align: "right",
+              width: 80,
+            },
+            {
+              title: "依赖数",
+              dataIndex: "dependencyCount",
+              key: "dependencyCount",
               align: "right",
               width: 80,
             },
@@ -155,7 +174,7 @@ function App() {
                       setViewChunk(record);
                     }}
                   >
-                    依赖方
+                    查看引用
                   </div>
                 </div>
               ),
@@ -164,10 +183,16 @@ function App() {
         />
       </div>
 
-      <DepChunksViewer
+      <RefChunksViewer
         id={id!}
         chunk={viewChunk}
         onClose={() => setViewChunk(null)}
+      />
+
+      <DepTreeViewer
+        id={id!}
+        onClose={() => setShowDepTree(false)}
+        visible={showDepTree}
       />
     </>
   );

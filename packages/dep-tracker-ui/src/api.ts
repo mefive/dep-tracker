@@ -21,10 +21,19 @@ export async function getChunks(id: string, max: number = 10000000) {
   return res.data.chunks;
 }
 
-export async function getDepChunks(id: string, chunkId: number) {
+export async function getRefChunks(id: string, chunkId: number) {
   const res = await axios.get<{
     chunks: DepNode[];
-  }>(`${domain}/api/dep-chunks/${id}/${chunkId}`);
+  }>(`${domain}/api/ref-chunks/${id}/${chunkId}`);
 
   return res.data.chunks;
+}
+
+export async function getDepChunks(id: string, chunkId?: number) {
+  const res = await axios.get<{
+    root: DepNode;
+    deps: DepNode[];
+  }>(`${domain}/api/dep-chunks/${id}${chunkId ? `?chunkId=${chunkId}` : ""}`);
+
+  return res.data;
 }

@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import * as api from "./api";
 import { DepNode } from "./types";
 
-export const DepChunksViewer: React.FC<{
+export const RefChunksViewer: React.FC<{
   id: string;
   chunk?: DepNode | null;
   onClose: () => void;
@@ -16,7 +16,7 @@ export const DepChunksViewer: React.FC<{
 
   const { data, loading, run } = useRequest(
     async (chunk: DepNode, insertBreadcrumbs = true) => {
-      const depChunks = await api.getDepChunks(id, chunk.id);
+      const depChunks = await api.getRefChunks(id, chunk.id);
       if (insertBreadcrumbs) {
         setBreadcrumbs((prev) => [...prev, chunk]);
       }
@@ -89,6 +89,12 @@ export const DepChunksViewer: React.FC<{
             width: 80,
           },
           {
+            title: "依赖数",
+            dataIndex: "dependencyCount",
+            align: "right",
+            width: 80,
+          },
+          {
             title: "行数",
             dataIndex: "loc",
             key: "loc",
@@ -123,7 +129,7 @@ export const DepChunksViewer: React.FC<{
                     run(record);
                   }}
                 >
-                  依赖方
+                  查看引用
                 </div>
               </div>
             ),
