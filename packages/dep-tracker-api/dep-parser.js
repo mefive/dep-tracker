@@ -168,7 +168,7 @@ function addDependencyCount(nodeId, nodes, links, paths = [nodeId]) {
   const node = nodes[nodeId];
 
   if (node.dependencyCount != null) {
-    return;
+    return node.dependencyCount;
   }
 
   const deps = links.filter((link) => link.from === nodeId && !link.isDir);
@@ -180,7 +180,7 @@ function addDependencyCount(nodeId, nodes, links, paths = [nodeId]) {
       paths.push(dep.to);
       const count = addDependencyCount(dep.to, nodes, links, paths);
 
-      if (count != null && count > 0) {
+      if (count > 0) {
         node.dependencyCount += count;
       }
 
